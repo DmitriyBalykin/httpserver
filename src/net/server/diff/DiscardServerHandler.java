@@ -1,13 +1,19 @@
-package net.server;
+package net.server.diff;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
-public class EchoServerHandler extends ChannelInboundHandlerAdapter{
+public class DiscardServerHandler extends ChannelInboundHandlerAdapter{
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-		ctx.write(msg);
-		ctx.flush();
+		ByteBuf buf = (ByteBuf)msg;
+		
+		try{
+			System.out.println(buf.toString(io.netty.util.CharsetUtil.US_ASCII));
+		} finally {
+			buf.release();
+		}
 	}
 	
 	@Override

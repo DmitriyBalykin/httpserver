@@ -12,6 +12,9 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class HttpServer {
 	private int port;
+	private StatCollector statContainer = new StatCollector();
+	private PipelineFactory pipeFactory = new PipelineFactory();
+		
 	public HttpServer(int port) {
 		this.port = port;
 	}
@@ -27,24 +30,23 @@ public class HttpServer {
 
 				@Override
 				protected void initChannel(SocketChannel channel) throws Exception {
-					channel.pipeline().addLast(new TimeServerHandler());
-				}
+					pipeFactory.getPipeline(channel, statContainer);
+					}
 			});
 			bootstrap.option(ChannelOption.SO_BACKLOG, 128);
 			bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
 			
+			System.out.println("Server started");
+			
 			ChannelFuture future = bootstrap.bind(port).sync();
-			System.out.println("Server ready\n");
 			
 			future.channel().closeFuture().sync();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		finally{
 			workerGroup.shutdownGracefully();
 			bossGroup.shutdownGracefully();
-			System.out.println("loop groups shutted down");
 		}
 		
 	}

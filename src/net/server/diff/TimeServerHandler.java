@@ -1,4 +1,4 @@
-package net.server;
+package net.server.diff;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
