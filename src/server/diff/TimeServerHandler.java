@@ -1,4 +1,4 @@
-package net.server.diff;
+package server.diff;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
@@ -13,8 +13,8 @@ public class TimeServerHandler extends ChannelInboundHandlerAdapter{
 	public void channelActive(final ChannelHandlerContext ctx) throws Exception {
 		final ByteBuf time = ctx.alloc().buffer(4);
 		Date date = new Date();
-		time.writeInt((int)(System.currentTimeMillis()/1000L + 2208988800L));
-//		time.writeBytes(date.toString().getBytes());
+//		time.writeInt((int)(System.currentTimeMillis()/1000L + 2208988800L));
+		time.writeBytes(date.toString().getBytes());
 		final ChannelFuture future = ctx.writeAndFlush(time);
 		future.addListener(new ChannelFutureListener() {
 			

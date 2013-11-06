@@ -1,4 +1,4 @@
-package net.client;
+package client;
 
 public class TimeClientBootstrap {
 

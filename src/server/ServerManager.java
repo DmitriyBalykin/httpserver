@@ -1,4 +1,4 @@
-package net.server;
+package server;
 
 
 public class ServerManager {
@@ -11,7 +11,7 @@ public class ServerManager {
 		int port = 80;
 		
 		if(args.length == 0 || args.length > 2){
-			System.out.println("Invalid parameters number. Format: \"start\"/\"stop\" [port]");
+			System.out.println("Invalid parameters number. Parameters format: start/stop [port]");
 			return;
 		}
 		if(args.length == 2){

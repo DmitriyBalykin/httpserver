@@ -1,4 +1,4 @@
-package net.server.handler;
+package server.handler;
 
 import java.util.List;
 

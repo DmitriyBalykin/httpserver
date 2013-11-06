@@ -1,4 +1,4 @@
-package net.server;
+package server.utils;
 
 public class StatCollector {
 	private int receivedBytes = 0;

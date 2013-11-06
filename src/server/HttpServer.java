@@ -1,4 +1,4 @@
-package net.server;
+package server;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -11,11 +11,12 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import server.utils.StatCollector;
 
 
 public class HttpServer implements Runnable{
 	private int port;
-	private StatCollector statContainer = new StatCollector();
+	private StatCollector statCollector = new StatCollector();
 	private PipelineFactory pipeFactory = new PipelineFactory();
 	private EventLoopGroup bossGroup = new NioEventLoopGroup();
 	private	EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -57,7 +58,7 @@ public class HttpServer implements Runnable{
 
 				@Override
 				protected void initChannel(SocketChannel channel) throws Exception {
-					pipeFactory.getPipeline(channel, statContainer);
+					pipeFactory.getPipeline(channel, statCollector);
 					}
 			});
 			bootstrap.option(ChannelOption.SO_BACKLOG, 128);
@@ -88,7 +89,6 @@ public class HttpServer implements Runnable{
 				if(future.equals(workerStopFuture)){
 					serverState.setWorkerStopped();
 				}
-				
 			}
 		});
 		bossStopFuture.addListener(new GenericFutureListener<Future<Channel>>() {

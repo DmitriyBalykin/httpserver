@@ -1,19 +1,24 @@
-package net.server.handler;
+package client;
 
-import net.server.StatCollector;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
-public class StatCollectorHandler extends ChannelInboundHandlerAdapter{
-	private StatCollector container;
-	
+import java.util.Date;
+
+public class TimeClientHandler extends ChannelInboundHandlerAdapter {
+
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		ByteBuf buf = (ByteBuf)msg;
-		container.addBytes(buf.readableBytes());
-		System.out.println(container);
-		super.channelRead(ctx, msg);
+		try{
+			long currentTimeMillis = (buf.readUnsignedInt() - 2208988800L)*1000L;
+			System.out.println(new Date(currentTimeMillis));
+			
+		} finally {
+			ctx.close();
+			buf.release();
+		}
 	}
 	
 	@Override
@@ -21,8 +26,5 @@ public class StatCollectorHandler extends ChannelInboundHandlerAdapter{
 		cause.printStackTrace();
 		ctx.close();
 	}
-	
-	public StatCollectorHandler(StatCollector cont) {
-		container = cont;
-	}
+
 }

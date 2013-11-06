@@ -1,4 +1,4 @@
-package net.server.handler;
+package server.handler;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;

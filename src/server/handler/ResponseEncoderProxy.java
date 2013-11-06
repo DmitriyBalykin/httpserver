@@ -1,4 +1,4 @@
-package net.server.handler;
+package server.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponse;
