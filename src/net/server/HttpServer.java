@@ -1,6 +1,7 @@
 package net.server;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -77,21 +78,26 @@ public class HttpServer implements Runnable{
 	}
 
 	public void stop(){
-		Future<?> workerStopFuture = workerGroup.shutdownGracefully();
-		Future<?> bossStopFuture = bossGroup.shutdownGracefully();
+		final Future<Channel> workerStopFuture = (Future<Channel>) workerGroup.shutdownGracefully();
+		final Future<Channel> bossStopFuture = (Future<Channel>) bossGroup.shutdownGracefully();
 		
-		workerStopFuture.addListener(new GenericFutureListener<Future<?>>() {
+		workerStopFuture.addListener(new GenericFutureListener<Future<Channel>>() {
 
 			@Override
-			public void operationComplete(Future<?> arg0) throws Exception {
-				serverState.setWorkerStopped();
+			public void operationComplete(Future<Channel> future) throws Exception {
+				if(future.equals(workerStopFuture)){
+					serverState.setWorkerStopped();
+				}
+				
 			}
 		});
-		bossStopFuture.addListener(new GenericFutureListener<Future<?>>() {
+		bossStopFuture.addListener(new GenericFutureListener<Future<Channel>>() {
 
 			@Override
-			public void operationComplete(Future<?> arg0) throws Exception {
-				serverState.setBossStopped();
+			public void operationComplete(Future<Channel> future) throws Exception {
+				if(future.equals(bossStopFuture)){
+					serverState.setWorkerStopped();
+				}
 			}
 		});
 	}
