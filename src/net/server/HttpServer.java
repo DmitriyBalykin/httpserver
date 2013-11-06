@@ -8,20 +8,46 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 
-public class HttpServer {
+public class HttpServer implements Runnable{
 	private int port;
 	private StatCollector statContainer = new StatCollector();
 	private PipelineFactory pipeFactory = new PipelineFactory();
-		
+	private EventLoopGroup bossGroup = new NioEventLoopGroup();
+	private	EventLoopGroup workerGroup = new NioEventLoopGroup();
+	private ServerState serverState = new ServerState();
+	
 	public HttpServer(int port) {
 		this.port = port;
 	}
-	public void startServer(){
-		EventLoopGroup bossGroup = new NioEventLoopGroup();
-		EventLoopGroup workerGroup = new NioEventLoopGroup();
+	
+	class ServerState{
+		private boolean workerStopped = false;
+		private boolean bossStopped = false;
 		
+		public void setWorkerStopped() {
+			this.workerStopped = true;
+			announceState();
+		}
+
+		public void setBossStopped() {
+			this.bossStopped = true;
+			announceState();
+		}
+		
+		private void announceState(){
+			if(workerStopped & bossStopped){
+				System.out.println("Server stopped");
+			}
+		}
+	}
+
+	@Override
+	public void run() {
+	
 		try{
 			ServerBootstrap bootstrap = new ServerBootstrap();
 			bootstrap.group(bossGroup, workerGroup);
@@ -48,7 +74,26 @@ public class HttpServer {
 			workerGroup.shutdownGracefully();
 			bossGroup.shutdownGracefully();
 		}
+	}
+
+	public void stop(){
+		Future<?> workerStopFuture = workerGroup.shutdownGracefully();
+		Future<?> bossStopFuture = bossGroup.shutdownGracefully();
 		
+		workerStopFuture.addListener(new GenericFutureListener<Future<?>>() {
+
+			@Override
+			public void operationComplete(Future<?> arg0) throws Exception {
+				serverState.setWorkerStopped();
+			}
+		});
+		bossStopFuture.addListener(new GenericFutureListener<Future<?>>() {
+
+			@Override
+			public void operationComplete(Future<?> arg0) throws Exception {
+				serverState.setBossStopped();
+			}
+		});
 	}
 	
 }
