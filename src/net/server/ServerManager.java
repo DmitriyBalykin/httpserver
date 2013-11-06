@@ -37,7 +37,5 @@ public class ServerManager {
 		} else {
 			System.out.println("Unknown command: "+args[0]);
 		}
-
 	}
-
 }
