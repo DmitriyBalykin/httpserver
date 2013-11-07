@@ -1,20 +1,21 @@
 package server;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Scanner;
+
 
 public class ServerManager {
 
 	/**
 	 * @param args
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		
 		int port = 80;
 		
-		if(args.length == 0 || args.length > 2){
-			System.out.println("Invalid parameters number. Parameters format: start/stop [port]");
-			return;
-		}
-		if(args.length == 2){
+		if(args.length == 1){
 			try {
 				port = Integer.valueOf(args[0]);
 				
@@ -26,16 +27,29 @@ public class ServerManager {
 				return;
 			}
 		}
+		else if(args.length > 1){
+			System.out.println("Invalid parameters number. Parameters format: [port]");
+			return;
+		}
+
 		HttpServer server = new HttpServer(port);
 		
-		if(args[0].equals("start")){
-			Thread t = new Thread(server);
-			t.start();
-		} 
-		else if(args[0].equals("stop")){
-			server.stop();
-		} else {
-			System.out.println("Unknown command: "+args[0]);
+		Thread t = new Thread(server);
+		t.start();
+		
+		InputStream in = System.in;
+		Scanner input = new Scanner(in);
+		
+		String line;
+		while((line = input.nextLine()) != null && line.length() != 0){
+	
+			if(line.equals("stop")){
+				server.stop();
+				return;
+			} else {
+				System.out.println("Unknown command: "+line);
+			}
 		}
+		
 	}
 }
