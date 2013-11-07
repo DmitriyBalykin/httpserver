@@ -1,13 +1,15 @@
 package server.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpRequest;
-import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.rtsp.RtspMethods;
@@ -31,6 +33,11 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 	}
 	
 	@Override
+	public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+		ctx.flush();
+	}
+	
+	@Override
 	protected void channelRead0(final ChannelHandlerContext ctx, HttpRequest request) throws Exception {
 		
 		QueryStringDecoder decoder = new QueryStringDecoder(request.getUri());
@@ -39,10 +46,12 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 
 		//	response Hello world
 		if(decoder.path().equals(HELLO_REQUEST)){
-			byte[] response = HELLO_RESPONSE.getBytes();
-			ByteBuf buf = ctx.alloc().buffer(response.length);
-			buf.writeBytes(response);
-			new DelayedResponse(ctx, buf, 10000);
+			byte[] bytes = HELLO_RESPONSE.getBytes();
+			ByteBuf buf = ctx.alloc().buffer(bytes.length);
+			buf.writeBytes(bytes);
+			HttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf);
+			
+			new DelayedResponse(ctx, response, 10000);
 		}
 		
 		//	redirect
@@ -52,9 +61,11 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 			if(redirectUrlList != null && redirectUrlList.size() > 0){
 				redirectUrl = redirectUrlList.get(0);
 			}
-			HttpRequest request2 = new DefaultHttpRequest(HttpVersion.HTTP_1_1, RtspMethods.REDIRECT, redirectUrl);
+			HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+			HttpRequest redirRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1, RtspMethods.REDIRECT, redirectUrl);
 			
-			postResponse(ctx, request2);
+			ctx.write(response);
+			ctx.write(redirRequest).addListener(ChannelFutureListener.CLOSE);
 		}
 		
 		//	status table	
@@ -63,19 +74,17 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 			String statTableString = StatFormatter.formatHTMLTable(statCollector);
 			byte[] statTableArray = statTableString.getBytes();
 			ByteBuf buf = ctx.alloc().buffer(statTableArray.length);
-
-			postResponse(ctx, buf);
+			
+			HttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf);
+			
+			System.out.println("Post response with message: "+buf);
+			ctx.write(response).addListener(ChannelFutureListener.CLOSE);
 		}
 		
 		//	default
 		else {
 			ctx.close();
 		}
-	}
-	
-	private void postResponse(ChannelHandlerContext ctx, Object msg){
-		final ChannelFuture future = ctx.channel().writeAndFlush(msg);
-		future.addListener(new ChannelFutureListenerImpl(ctx, future));
 	}
 	
 	private class DelayedResponse implements Runnable{
@@ -96,24 +105,7 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			postResponse(ctx, response);
-		}
-		
-	}
-	
-	private class ChannelFutureListenerImpl implements ChannelFutureListener{
-		ChannelFuture future;
-		final ChannelHandlerContext ctx;
-		public ChannelFutureListenerImpl(ChannelHandlerContext ctx, ChannelFuture future) {
-			this.future = future;
-			this.ctx = ctx;
-		}
-		
-		@Override
-		public void operationComplete(ChannelFuture future2) throws Exception {
-			if(future.equals(future2)){
-				ctx.close();
-			}
+			ctx.write(response).addListener(ChannelFutureListener.CLOSE);
 		}
 		
 	}
