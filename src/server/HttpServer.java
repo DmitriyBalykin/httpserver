@@ -42,7 +42,7 @@ public class HttpServer implements Runnable{
 		
 		private void announceState(){
 			if(workerStopped & bossStopped){
-				System.out.println("Server stopped");
+				System.out.println("Done.");
 			}
 		}
 	}
@@ -65,6 +65,7 @@ public class HttpServer implements Runnable{
 			bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
 			
 			System.out.println("Server started");
+			System.out.println("Listening port "+port);
 			
 			ChannelFuture future = bootstrap.bind(port).sync();
 			
@@ -96,7 +97,7 @@ public class HttpServer implements Runnable{
 			@Override
 			public void operationComplete(Future<Channel> future) throws Exception {
 				if(future.equals(bossStopFuture)){
-					serverState.setWorkerStopped();
+					serverState.setBossStopped();
 				}
 			}
 		});

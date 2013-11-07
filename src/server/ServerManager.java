@@ -45,6 +45,7 @@ public class ServerManager {
 	
 			if(line.equals("stop")){
 				server.stop();
+				System.out.print("Server is stopping... ");
 				return;
 			} else {
 				System.out.println("Unknown command: "+line);

@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpResponse;
@@ -13,6 +14,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.rtsp.RtspMethods;
+import io.netty.handler.codec.rtsp.RtspRequestEncoder;
 
 import java.util.List;
 
@@ -43,15 +45,16 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 		QueryStringDecoder decoder = new QueryStringDecoder(request.getUri());
 		String decodedPath = decoder.path();
 		System.out.println("Decoded path: "+decodedPath);
-
+		
 		//	response Hello world
 		if(decoder.path().equals(HELLO_REQUEST)){
-			byte[] bytes = HELLO_RESPONSE.getBytes();
-			ByteBuf buf = ctx.alloc().buffer(bytes.length);
-			buf.writeBytes(bytes);
-			HttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf);
-			
-			new DelayedResponse(ctx, response, 10000);
+
+			HttpResponse response = new DefaultFullHttpResponse(
+					HttpVersion.HTTP_1_1,
+					HttpResponseStatus.OK,
+					packString(ctx, HELLO_RESPONSE));
+			ctx.write(response).addListener(ChannelFutureListener.CLOSE);
+//			new DelayedResponse(ctx, response, 10000);
 		}
 		
 		//	redirect
@@ -61,23 +64,27 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 			if(redirectUrlList != null && redirectUrlList.size() > 0){
 				redirectUrl = redirectUrlList.get(0);
 			}
-			HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-			HttpRequest redirRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1, RtspMethods.REDIRECT, redirectUrl);
+			statCollector.addRedirect(redirectUrl);
+			
+			HttpResponse response = new DefaultFullHttpResponse(
+					HttpVersion.HTTP_1_1,
+					HttpResponseStatus.TEMPORARY_REDIRECT,
+					packString(ctx, redirectUrl));
+			HttpRequest request2 = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, RtspMethods.REDIRECT, redirectUrl);
 			
 			ctx.write(response);
-			ctx.write(redirRequest).addListener(ChannelFutureListener.CLOSE);
+			ctx.write(request2).addListener(ChannelFutureListener.CLOSE);
 		}
 		
 		//	status table	
 		else if(decoder.path().equals(STAT_REQUEST)){
 			
-			String statTableString = StatFormatter.formatHTMLTable(statCollector);
-			byte[] statTableArray = statTableString.getBytes();
-			ByteBuf buf = ctx.alloc().buffer(statTableArray.length);
+			String statTableString = new StatFormatter().formatHTMLTable(statCollector);
+			HttpResponse response = new DefaultFullHttpResponse(
+					HttpVersion.HTTP_1_1,
+					HttpResponseStatus.OK,
+					packString(ctx, statTableString));
 			
-			HttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf);
-			
-			System.out.println("Post response with message: "+buf);
 			ctx.write(response).addListener(ChannelFutureListener.CLOSE);
 		}
 		
@@ -85,6 +92,13 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 		else {
 			ctx.close();
 		}
+	}
+	
+	private ByteBuf packString(ChannelHandlerContext ctx, String str){
+		byte[] statTableArray = str.getBytes();
+		ByteBuf buf = ctx.alloc().buffer(statTableArray.length);
+		buf.writeBytes(statTableArray);
+		return buf;
 	}
 	
 	private class DelayedResponse implements Runnable{
