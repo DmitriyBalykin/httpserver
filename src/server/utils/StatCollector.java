@@ -70,30 +70,26 @@ public class StatCollector {
 	public void addProcessedConnection(Channel channel, ConnectionParameter param, String strValue, long digValue) {
 
 		ProcessedConnection newConn = new ProcessedConnection(channel);
+
 		boolean isNewConn = true;
-		
 		for(int i = 0; i < processedConnections.size(); i++){
 			ProcessedConnection conn = processedConnections.get(i);
 			if(newConn.equals(conn)){
-				if(!strValue.equals("")){
-					conn.addParameter(param, strValue);
-					
-					if(param.equals(ConnectionParameter.IPADDRESS)){
-						addRequest(strValue);
-					}
-				}
-				if(digValue != 0){
-					conn.addParameter(param, digValue);
-				}
+				fillConnection(conn, param, strValue, digValue);
 				isNewConn = false;
 			}
 		}
 		if(isNewConn){
+			fillConnection(newConn, param, strValue, digValue);
 			processedConnections.push(newConn);
 		}
 		
 		if (processedConnections.size() > 16) {
 			processedConnections.pollLast();
+		}
+		
+		if(param.equals(ConnectionParameter.IPADDRESS)){
+			addRequest(strValue);
 		}
 	}
 	
@@ -103,11 +99,19 @@ public class StatCollector {
 	
 	public void addProcessedConnection(Channel channel, ConnectionParameter param, String value){
 		addProcessedConnection(channel, param, value, 0);
-}
+	}
 	
 	public LinkedList<ProcessedConnection> getProcessedConnections() {
 		return processedConnections;
 	}
-
+	
+	private void fillConnection(ProcessedConnection conn, ConnectionParameter param, String strValue, long digValue){
+		if(!strValue.equals("")){
+			conn.addParameter(param, strValue);
+		}
+		if(digValue != 0){
+			conn.addParameter(param, digValue);
+		}
+	}
 
 }

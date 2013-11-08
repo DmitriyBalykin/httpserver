@@ -21,6 +21,7 @@ public class StatCollectorInboundHandler extends ChannelInboundHandlerAdapter{
 		super.channelUnregistered(ctx);
 	}
 	
+	
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		
@@ -29,6 +30,10 @@ public class StatCollectorInboundHandler extends ChannelInboundHandlerAdapter{
 		String remoteIp = ctx.channel().remoteAddress().toString();
 		remoteIp = remoteIp.substring(1,remoteIp.indexOf(":"));
 		//measuring connection speed
+		
+		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.IPADDRESS, remoteIp);
+		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.RECEIVED_BYTES, receivedBytes);		
+		
 		long startReadTime = System.currentTimeMillis();
 		
 		super.channelRead(ctx, msg);
@@ -36,8 +41,6 @@ public class StatCollectorInboundHandler extends ChannelInboundHandlerAdapter{
 		long readTime = System.currentTimeMillis() - startReadTime;
 		long speed = 1000 * receivedBytes / readTime;
 			
-		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.IPADDRESS, remoteIp);
-		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.RECEIVED_BYTES, receivedBytes);
 		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.SPEED, speed);
 	}
 	

@@ -20,6 +20,7 @@ public class HttpServer implements Runnable{
 	private PipelineFactory pipeFactory = new PipelineFactory();
 	private EventLoopGroup bossGroup = new NioEventLoopGroup();
 	private	EventLoopGroup workerGroup = new NioEventLoopGroup();
+	private	EventLoopGroup logicGroup = new NioEventLoopGroup();
 	private ServerState serverState = new ServerState();
 	
 	public HttpServer(int port) {
@@ -29,6 +30,7 @@ public class HttpServer implements Runnable{
 	class ServerState{
 		private boolean workerStopped = false;
 		private boolean bossStopped = false;
+		private boolean logicStopped = false;
 		
 		public void setWorkerStopped() {
 			this.workerStopped = true;
@@ -40,8 +42,13 @@ public class HttpServer implements Runnable{
 			announceState();
 		}
 		
+		public void setLogicStopped() {
+			this.logicStopped = true;
+			announceState();
+		}
+		
 		private void announceState(){
-			if(workerStopped & bossStopped){
+			if(workerStopped & bossStopped & logicStopped){
 				System.out.println("Done.");
 			}
 		}
@@ -58,7 +65,7 @@ public class HttpServer implements Runnable{
 
 				@Override
 				protected void initChannel(SocketChannel channel) throws Exception {
-					pipeFactory.getPipeline(channel, statCollector);
+					pipeFactory.getPipeline(channel, logicGroup, statCollector);
 					}
 			});
 			bootstrap.option(ChannelOption.SO_BACKLOG, 128);
@@ -82,6 +89,7 @@ public class HttpServer implements Runnable{
 	public void stop(){
 		final Future<Channel> workerStopFuture = (Future<Channel>) workerGroup.shutdownGracefully();
 		final Future<Channel> bossStopFuture = (Future<Channel>) bossGroup.shutdownGracefully();
+		final Future<Channel> logicStopFuture = (Future<Channel>) bossGroup.shutdownGracefully();
 		
 		workerStopFuture.addListener(new GenericFutureListener<Future<Channel>>() {
 
@@ -98,6 +106,15 @@ public class HttpServer implements Runnable{
 			public void operationComplete(Future<Channel> future) throws Exception {
 				if(future.equals(bossStopFuture)){
 					serverState.setBossStopped();
+				}
+			}
+		});
+		logicStopFuture.addListener(new GenericFutureListener<Future<Channel>>() {
+
+			@Override
+			public void operationComplete(Future<Channel> future) throws Exception {
+				if(future.equals(logicStopFuture)){
+					serverState.setLogicStopped();
 				}
 			}
 		});

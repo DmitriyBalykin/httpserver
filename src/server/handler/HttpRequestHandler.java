@@ -42,7 +42,6 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 		
 		QueryStringDecoder decoder = new QueryStringDecoder(request.getUri());
 		String decodedUri = decoder.path();
-		System.out.println("Decoded path: "+decodedUri);
 		
 		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.URI, decodedUri);
 		
@@ -53,8 +52,8 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 					HttpVersion.HTTP_1_1,
 					HttpResponseStatus.OK,
 					packString(ctx, HELLO_RESPONSE));
-			ctx.write(response).addListener(ChannelFutureListener.CLOSE);
-//			new DelayedResponse(ctx, response, 10000);
+//			ctx.write(response).addListener(ChannelFutureListener.CLOSE);
+			new DelayedResponse(ctx, response, 10000);
 		}
 		
 		//	redirect
@@ -66,7 +65,6 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 			}
 			statCollector.addRedirect(redirectUrl);
 
-			
 			HttpRequest request2 = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, RtspMethods.REDIRECT, redirectUrl);
 			
 			ctx.write(request2).addListener(ChannelFutureListener.CLOSE);
@@ -97,6 +95,12 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 		return buf;
 	}
 	
+	@Override
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		cause.printStackTrace();
+		ctx.close();
+	}
+	
 	private class DelayedResponse implements Runnable{
 		Object response;
 		ChannelHandlerContext ctx;
@@ -115,7 +119,7 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			ctx.write(response).addListener(ChannelFutureListener.CLOSE);
+			ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
 		}
 		
 	}
