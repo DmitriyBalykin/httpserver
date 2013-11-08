@@ -4,14 +4,13 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.handler.codec.rtsp.RtspMethods;
 
 import java.util.List;
 
@@ -61,13 +60,15 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 			List<String> redirectUrlList = decoder.parameters().get("url");
 			String redirectUrl = null;
 			if(redirectUrlList != null && redirectUrlList.size() > 0){
-				redirectUrl = redirectUrlList.get(0);
+				redirectUrl = "http://" + redirectUrlList.get(0);
 			}
 			statCollector.addRedirect(redirectUrl);
 
-			HttpRequest request2 = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, RtspMethods.REDIRECT, redirectUrl);
+			HttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.MOVED_PERMANENTLY);
+			HttpHeaders.setHeader(response, "Location", redirectUrl);
+			System.out.println(response);
 			
-			ctx.write(request2).addListener(ChannelFutureListener.CLOSE);
+			ctx.write(response).addListener(ChannelFutureListener.CLOSE);
 		}
 		
 		//	status table	

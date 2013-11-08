@@ -76,8 +76,6 @@ public class ProcessedConnection {
 			value = value + val;
 		}
 		valuesMap.put(parameter.toString(), Long.toString(value));
-		
-		System.out.println("Added number parameter. Map view: "+ valuesMap);
 	}
 
 	public boolean equals(Object o){
