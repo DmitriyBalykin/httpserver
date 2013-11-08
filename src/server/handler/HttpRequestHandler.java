@@ -6,18 +6,16 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.DefaultHttpRequest;
-import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.rtsp.RtspMethods;
-import io.netty.handler.codec.rtsp.RtspRequestEncoder;
 
 import java.util.List;
 
+import server.utils.ProcessedConnection.ConnectionParameter;
 import server.utils.StatCollector;
 import server.utils.StatFormatter;
 
@@ -43,11 +41,13 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 	protected void channelRead0(final ChannelHandlerContext ctx, HttpRequest request) throws Exception {
 		
 		QueryStringDecoder decoder = new QueryStringDecoder(request.getUri());
-		String decodedPath = decoder.path();
-		System.out.println("Decoded path: "+decodedPath);
+		String decodedUri = decoder.path();
+		System.out.println("Decoded path: "+decodedUri);
+		
+		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.URI, decodedUri);
 		
 		//	response Hello world
-		if(decoder.path().equals(HELLO_REQUEST)){
+		if(decodedUri.equals(HELLO_REQUEST)){
 
 			HttpResponse response = new DefaultFullHttpResponse(
 					HttpVersion.HTTP_1_1,
@@ -58,26 +58,22 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 		}
 		
 		//	redirect
-		else if(decoder.path().equals(REDIRECT_REQUEST)){
+		else if(decodedUri.equals(REDIRECT_REQUEST)){
 			List<String> redirectUrlList = decoder.parameters().get("url");
 			String redirectUrl = null;
 			if(redirectUrlList != null && redirectUrlList.size() > 0){
 				redirectUrl = redirectUrlList.get(0);
 			}
 			statCollector.addRedirect(redirectUrl);
+
 			
-			HttpResponse response = new DefaultFullHttpResponse(
-					HttpVersion.HTTP_1_1,
-					HttpResponseStatus.TEMPORARY_REDIRECT,
-					packString(ctx, redirectUrl));
 			HttpRequest request2 = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, RtspMethods.REDIRECT, redirectUrl);
 			
-			ctx.write(response);
 			ctx.write(request2).addListener(ChannelFutureListener.CLOSE);
 		}
 		
 		//	status table	
-		else if(decoder.path().equals(STAT_REQUEST)){
+		else if(decodedUri.equals(STAT_REQUEST)){
 			
 			String statTableString = new StatFormatter().formatHTMLTable(statCollector);
 			HttpResponse response = new DefaultFullHttpResponse(

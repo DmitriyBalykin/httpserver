@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
-import io.netty.handler.codec.http.HttpRequest;
+import server.utils.ProcessedConnection.ConnectionParameter;
 import server.utils.StatCollector;
 
 public class StatCollectorOutboudHandler extends ChannelOutboundHandlerAdapter{
@@ -16,8 +16,7 @@ public class StatCollectorOutboudHandler extends ChannelOutboundHandlerAdapter{
 		long sentBytes = buf.readableBytes();
 		String remoteIp = ctx.channel().remoteAddress().toString();
 		remoteIp = remoteIp.substring(1,remoteIp.indexOf(":"));
-		String uri = "";
-		
+		//measuring connection speed
 		long startWriteTime = System.currentTimeMillis();
 		
 		super.write(ctx, msg, promise);
@@ -25,13 +24,9 @@ public class StatCollectorOutboudHandler extends ChannelOutboundHandlerAdapter{
 		long writeTime = System.currentTimeMillis() - startWriteTime;
 		long speed = 1000 * sentBytes / writeTime;
 			
-		if(msg instanceof HttpRequest){
-			HttpRequest req = (HttpRequest)msg;
-			uri = req.getUri();
-		}
-
-		statCollector.addRequest(remoteIp);
-		statCollector.addProcessedConnections(remoteIp, uri, sentBytes, 0, speed);
+		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.IPADDRESS, remoteIp);
+		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.SENT_BYTES, sentBytes);
+		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.SPEED, speed);
 		
 	}
 	

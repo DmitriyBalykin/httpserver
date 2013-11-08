@@ -3,7 +3,7 @@ package server.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.HttpRequest;
+import server.utils.ProcessedConnection.ConnectionParameter;
 import server.utils.StatCollector;
 
 public class StatCollectorInboundHandler extends ChannelInboundHandlerAdapter{
@@ -11,13 +11,13 @@ public class StatCollectorInboundHandler extends ChannelInboundHandlerAdapter{
 	
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		statCollector.addOpenedConnection();
+		statCollector.increaseOpenedConnections();
 		super.channelRegistered(ctx);
 	}
 	
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		statCollector.deleteOpenedConnection();
+		statCollector.decreaseOpenedConnections();
 		super.channelUnregistered(ctx);
 	}
 	
@@ -28,8 +28,7 @@ public class StatCollectorInboundHandler extends ChannelInboundHandlerAdapter{
 		long receivedBytes = buf.readableBytes();
 		String remoteIp = ctx.channel().remoteAddress().toString();
 		remoteIp = remoteIp.substring(1,remoteIp.indexOf(":"));
-		String uri = "";
-		
+		//measuring connection speed
 		long startReadTime = System.currentTimeMillis();
 		
 		super.channelRead(ctx, msg);
@@ -37,12 +36,9 @@ public class StatCollectorInboundHandler extends ChannelInboundHandlerAdapter{
 		long readTime = System.currentTimeMillis() - startReadTime;
 		long speed = 1000 * receivedBytes / readTime;
 			
-		if(msg instanceof HttpRequest){
-			HttpRequest req = (HttpRequest)msg;	
-			uri = req.getUri();
-		}
-		statCollector.addRequest(remoteIp);
-		statCollector.addProcessedConnections(remoteIp, uri, 0, receivedBytes, speed);
+		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.IPADDRESS, remoteIp);
+		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.RECEIVED_BYTES, receivedBytes);
+		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.SPEED, speed);
 	}
 	
 	@Override

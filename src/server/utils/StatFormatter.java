@@ -70,7 +70,7 @@ public class StatFormatter {
 				add(colName);
 			}
 			//print cell values
-			for(ProcessedConnection conn:stat.getProcessedConnections()){
+			for(ProcessedConnection conn:connections){
 				add("<tr>");
 				for(String cellValue:conn.getRow()){
 					add("<td>");

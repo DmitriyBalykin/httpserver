@@ -15,9 +15,14 @@ public class PipelineFactory {
 		ChannelPipeline pipeline = channel.pipeline();
 		
 		pipeline.addLast(new StatCollectorInboundHandler(statCollector));
+		
 		pipeline.addLast(new HttpServerCodec());
+		
 		pipeline.addLast(new HttpRequestHandler(statCollector));
+		
 		pipeline.addLast(new StatCollectorOutboudHandler(statCollector));
+		
+		pipeline.addLast(new HttpServerCodec());
 		
 		return pipeline;
 	}
