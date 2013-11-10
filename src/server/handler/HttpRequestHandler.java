@@ -68,7 +68,6 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 
 			HttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.MOVED_PERMANENTLY);
 			HttpHeaders.setHeader(response, "Location", redirectUrl);
-			System.out.println(response);
 			
 			ctx.write(response).addListener(ChannelFutureListener.CLOSE);
 		}
