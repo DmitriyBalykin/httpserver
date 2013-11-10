@@ -10,6 +10,7 @@ import server.utils.StatCollector;
 public class StatCollectorOutboudHandler extends ChannelOutboundHandlerAdapter{
 	StatCollector statCollector;
 	
+	@Override
 	public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
 		
 		ByteBuf buf = (ByteBuf)msg;
@@ -17,17 +18,25 @@ public class StatCollectorOutboudHandler extends ChannelOutboundHandlerAdapter{
 		String remoteIp = ctx.channel().remoteAddress().toString();
 		remoteIp = remoteIp.substring(1,remoteIp.indexOf(":"));
 		//measuring connection speed
-		long startWriteTime = System.currentTimeMillis();
+		long startWriteTime = System.nanoTime();
 		
-		super.write(ctx, msg, promise);
+		ctx.write(msg, promise);
 		
-		long writeTime = System.currentTimeMillis() - startWriteTime;
-		long speed = 1000 * sentBytes / writeTime;
+		double readTime = (System.nanoTime() - startWriteTime) / 10E+9;
+		double speed = 0;
+		if(readTime > 0){
+			speed = sentBytes / readTime;
+		}
 			
 		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.IPADDRESS, remoteIp);
 		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.SENT_BYTES, sentBytes);
-		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.SPEED, speed);
+		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.SPEED, Math.round(speed));
 		
+	}
+	
+	@Override
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		cause.printStackTrace();
 	}
 	
 	public StatCollectorOutboudHandler(StatCollector collector) {

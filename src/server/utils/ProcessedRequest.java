@@ -9,6 +9,7 @@ public class ProcessedRequest {
 	
 	public ProcessedRequest(String ipAddr) {
 		ipaddress = ipAddr;
+		updateRequest();
 	}
 	public String getIPAddress(){
 		return ipaddress;

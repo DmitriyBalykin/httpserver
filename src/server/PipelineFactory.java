@@ -11,25 +11,18 @@ import server.utils.StatCollector;
 
 public class PipelineFactory {
 	
-	
 	public ChannelPipeline getPipeline(Channel channel, EventLoopGroup logicGroup, StatCollector statCollector){
 		ChannelPipeline pipeline = channel.pipeline();
+
 		
 		pipeline.addLast("inputStatisticHandler",new StatCollectorInboundHandler(statCollector));
 		
+		pipeline.addLast("outputStatisticHandler", new StatCollectorOutboudHandler(statCollector));
+		
 		pipeline.addLast("codec",new HttpServerCodec());
-		
+	
 		pipeline.addLast("logicHandler",new HttpRequestHandler(statCollector));
-		
-//		pipeline.addLast("outputStatisticHandler", new StatCollectorOutboudHandler(statCollector));
-		
-		
-		
-		
-		
 
-		
 		return pipeline;
 	}
 }
-

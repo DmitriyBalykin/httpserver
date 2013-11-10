@@ -34,14 +34,17 @@ public class StatCollectorInboundHandler extends ChannelInboundHandlerAdapter{
 		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.IPADDRESS, remoteIp);
 		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.RECEIVED_BYTES, receivedBytes);		
 		
-		long startReadTime = System.currentTimeMillis();
+		long startReadTime = System.nanoTime();
 		
 		super.channelRead(ctx, msg);
 		
-		long readTime = System.currentTimeMillis() - startReadTime;
-		long speed = 1000 * receivedBytes / readTime;
+		double readTime = (System.nanoTime() - startReadTime) / 10E+9;
+		double speed = 0;
+		if(readTime > 0){
+			speed = receivedBytes / readTime;
+		}
 			
-		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.SPEED, speed);
+		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.SPEED, Math.round(speed));
 	}
 	
 	@Override

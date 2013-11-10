@@ -11,6 +11,7 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 	private static final String HELLO_REQUEST = "/hello";
 	private static final String REDIRECT_REQUEST = "/redirect";
 	private static final String STAT_REQUEST = "/status";
+	private static final String FAVICON_REQUEST = "/favicon.ico";
 	
 	StatCollector statCollector;
 	

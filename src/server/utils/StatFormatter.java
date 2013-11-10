@@ -69,10 +69,10 @@ public class StatFormatter {
 				add("<td>");
 				add(colName);
 			}
-			//print cell values
-			for(ProcessedConnection conn:connections){
+			//print cell values, skipping first row, that relates to current connection and is incomplete
+			for(ProcessedConnection conn:connections.subList(1, connections.size())){
 				add("<tr>");
-				for(String cellValue:conn.getRow()){
+				for(String cellValue:conn.getValues()){
 					add("<td>");
 					add(cellValue);
 				}
@@ -91,9 +91,11 @@ public class StatFormatter {
 	private void add(String str){
 		sb.append(str).append("\n");
 	}
+	
 	private void add(int str){
 		sb.append(str).append("\n");
 	}
+	
 	private void add(Date str){
 		sb.append(str).append("\n");
 	}

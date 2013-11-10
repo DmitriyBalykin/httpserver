@@ -1,12 +1,12 @@
 package server.utils;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
 
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,7 +27,7 @@ public class ProcessedConnection {
 		
 	}
 	
-	Map<String, String> valuesMap = new LinkedHashMap<String, String>(6);
+	Map<ConnectionParameter, String> valuesMap = new LinkedHashMap<ConnectionParameter, String>(6);
 	Channel channel;
 	
 	public ProcessedConnection(Channel channel) {
@@ -43,24 +43,28 @@ public class ProcessedConnection {
 				calendar.get(Calendar.SECOND)
 				);
 		
-		valuesMap.put(ConnectionParameter.IPADDRESS.toString(), "");
-		valuesMap.put(ConnectionParameter.URI.toString(), "");
-		valuesMap.put(ConnectionParameter.TIME_STAMP.toString(), timestamp);
-		valuesMap.put(ConnectionParameter.SENT_BYTES.toString(), "");
-		valuesMap.put(ConnectionParameter.RECEIVED_BYTES.toString(), "");
-		valuesMap.put(ConnectionParameter.SPEED.toString(), "");
+		valuesMap.put(ConnectionParameter.IPADDRESS, "");
+		valuesMap.put(ConnectionParameter.URI, "");
+		valuesMap.put(ConnectionParameter.TIME_STAMP, timestamp);
+		valuesMap.put(ConnectionParameter.SENT_BYTES, "");
+		valuesMap.put(ConnectionParameter.RECEIVED_BYTES, "");
+		valuesMap.put(ConnectionParameter.SPEED, "");
 	}
 
 	public Set<String> getHeader(){
-		return valuesMap.keySet();
+		Set<String> headersSet = new LinkedHashSet<String>();
+		for(ConnectionParameter param:valuesMap.keySet()){
+			headersSet.add(param.toString());
+		}
+		return headersSet;
 	}
 
-	public Collection<String> getRow(){
+	public Collection<String> getValues(){
 		return valuesMap.values();
 	}
 
 	public void addParameter(ConnectionParameter parameter, String value){
-		valuesMap.put(parameter.toString(), value);
+		valuesMap.put(parameter, value);
 	}
 
 	public void addParameter(ConnectionParameter parameter, long value){
@@ -75,7 +79,7 @@ public class ProcessedConnection {
 			 
 			value = value + val;
 		}
-		valuesMap.put(parameter.toString(), Long.toString(value));
+		valuesMap.put(parameter, Long.toString(value));
 	}
 
 	public boolean equals(Object o){
@@ -84,5 +88,9 @@ public class ProcessedConnection {
 	
 	public int hashcode(){
 		return channel.hashCode();
+	}
+	
+	public String getURI(){
+		return valuesMap.get(ConnectionParameter.URI);
 	}
 }
