@@ -11,7 +11,7 @@ import server.utils.StatCollector;
 
 public class PipelineFactory {
 	
-	public ChannelPipeline getPipeline(Channel channel, EventLoopGroup logicGroup, StatCollector statCollector){
+	public ChannelPipeline getPipeline(Channel channel, StatCollector statCollector){
 		ChannelPipeline pipeline = channel.pipeline();
 
 		
