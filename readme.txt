@@ -1,6 +1,6 @@
 BUILDING:
 
-Clone httpserver from github:
+Clone master branch of httpserver repository from github:
 	github clone git@github.com:DmitriyBalykin/httpserver.git
 or download it using link https://github.com/DmitriyBalykin/httpserver/archive/master.zip and unzip.
 
