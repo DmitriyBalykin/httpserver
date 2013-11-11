@@ -2,6 +2,7 @@ package server.utils;
 
 import io.netty.channel.Channel;
 
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,16 +28,9 @@ public class StatCollector {
 		uriExclusionSet.add("favicon.ico");
 	}
 	
-	private void addRequest(String ip) {
-		requests ++;
-		ProcessedRequest request = new ProcessedRequest(ip);
-		for(ProcessedRequest req:uniqIPRequests){
-			if(req.equals(request)){
-				req.updateRequest();
-				request = req;
-			}
-		}
-		uniqIPRequests.add(request);
+	public static String ipAddressToString(SocketAddress address){
+		String strAddr = address.toString();
+		return strAddr.substring(1, strAddr.lastIndexOf(":"));
 	}
 	
 	public int getRequests() {
@@ -136,6 +130,19 @@ public class StatCollector {
 		if(digValue != 0){
 			conn.addParameter(param, digValue);
 		}
+	}
+	
+	private void addRequest(String ip) {
+		System.out.println("Request IP: "+ip);
+		requests ++;
+		ProcessedRequest request = new ProcessedRequest(ip);
+		for(ProcessedRequest req:uniqIPRequests){
+			if(req.equals(request)){
+				req.updateRequest();
+				request = req;
+			}
+		}
+		uniqIPRequests.add(request);
 	}
 
 }

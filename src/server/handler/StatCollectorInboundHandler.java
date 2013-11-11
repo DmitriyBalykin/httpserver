@@ -27,8 +27,7 @@ public class StatCollectorInboundHandler extends ChannelInboundHandlerAdapter{
 		
 		ByteBuf buf = (ByteBuf)msg;
 		long receivedBytes = buf.readableBytes();
-		String remoteIp = ctx.channel().remoteAddress().toString();
-		remoteIp = remoteIp.substring(1,remoteIp.indexOf(":"));
+		String remoteIp = StatCollector.ipAddressToString(ctx.channel().remoteAddress());
 		//measuring connection speed
 		
 		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.IPADDRESS, remoteIp);

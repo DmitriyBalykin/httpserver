@@ -15,8 +15,7 @@ public class StatCollectorOutboudHandler extends ChannelOutboundHandlerAdapter{
 		
 		ByteBuf buf = (ByteBuf)msg;
 		long sentBytes = buf.readableBytes();
-		String remoteIp = ctx.channel().remoteAddress().toString();
-		remoteIp = remoteIp.substring(1,remoteIp.indexOf(":"));
+		String remoteIp = StatCollector.ipAddressToString(ctx.channel().remoteAddress());
 		//measuring connection speed
 		long startWriteTime = System.nanoTime();
 		
