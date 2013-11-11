@@ -36,7 +36,7 @@ public class StatCollector {
 		return requests;
 	}
 
-	public void increaseOpenedConnections() {
+	public synchronized void increaseOpenedConnections() {
 		openedConnections ++;
 	}
 	
@@ -102,10 +102,7 @@ public class StatCollector {
 	}
 	
 	public List<ProcessedConnection> getProcessedConnections() {
-		return sanitizedStat();
-	}
-	
-	private List<ProcessedConnection> sanitizedStat() {
+		
 		ArrayList<ProcessedConnection> newList = new ArrayList<ProcessedConnection>();
 		LinkedList<ProcessedConnection> backList = null;
 		synchronized(this){
