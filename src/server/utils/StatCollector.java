@@ -134,7 +134,7 @@ public class StatCollector {
 		}
 	}
 	
-	private void addRequest(String ip) {
+	private synchronized void addRequest(String ip) {
 		requests ++;
 		ProcessedRequest request = new ProcessedRequest(ip);
 		for(ProcessedRequest req:uniqIPRequests){
