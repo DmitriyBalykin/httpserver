@@ -15,7 +15,6 @@ import server.utils.ProcessedConnection.ConnectionParameter;
 
 public class StatCollector {
 	
-	
 	private volatile int requests = 0;
 	private volatile int openedConnections = 0;
 	private volatile Set<ProcessedRequest> uniqIPRequests = new HashSet<ProcessedRequest>();	//IP -> (requests number, last request time)
@@ -46,7 +45,7 @@ public class StatCollector {
 		if(openedConnections < 0){
 			throw new Exception("Error in calculating opened connections number. Number cannot be less that zero.");
 		}
-	}	
+	}
 	
 	public int getOpenedConnections() {
 		return openedConnections;
@@ -119,7 +118,6 @@ public class StatCollector {
 				break;
 			}
 		}
-
 		return newList;
 	}
 
@@ -144,5 +142,4 @@ public class StatCollector {
 		}
 		uniqIPRequests.add(request);
 	}
-
 }
