@@ -105,7 +105,7 @@ public class StatCollector {
 	
 	public List<ProcessedConnection> getProcessedConnections() {
 		
-		ArrayList<ProcessedConnection> newList = new ArrayList<ProcessedConnection>();
+		ArrayList<ProcessedConnection> newList = new ArrayList<ProcessedConnection>(MAX_CONNECTIONS_STORED);
 		LinkedList<ProcessedConnection> backList = null;
 		synchronized(this){
 			backList = new LinkedList<ProcessedConnection>(processedConnections);
