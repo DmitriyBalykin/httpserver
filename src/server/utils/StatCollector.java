@@ -41,10 +41,10 @@ public class StatCollector {
 	}
 	
 	public synchronized void decreaseOpenedConnections() throws Exception {
-		openedConnections --;
-		if(openedConnections < 0){
-			throw new Exception("Error in calculating opened connections number. Number cannot be less that zero.");
+		if(openedConnections == 0){
+			return;
 		}
+		openedConnections --;
 	}
 	
 	public int getOpenedConnections() {
@@ -66,7 +66,7 @@ public class StatCollector {
 		return redirects;
 	}
 	
-	public void addProcessedConnection(Channel channel, ConnectionParameter param, String strValue, long digValue) {
+	public synchronized void addProcessedConnection(Channel channel, ConnectionParameter param, String strValue, long digValue) {
 
 		ProcessedConnection newConn = new ProcessedConnection(channel);
 
@@ -107,10 +107,15 @@ public class StatCollector {
 	
 	private List<ProcessedConnection> sanitizedStat() {
 		ArrayList<ProcessedConnection> newList = new ArrayList<ProcessedConnection>();
+		LinkedList<ProcessedConnection> backList = null;
+		synchronized(this){
+			backList = new LinkedList<ProcessedConnection>(processedConnections);
+		}
 		
 		int counter = 0;
-		for(ProcessedConnection conn:processedConnections){
-			if(!uriExclusionSet.contains(conn.getURI())){
+		for(ProcessedConnection conn:backList){
+			String uri = conn.getURI();
+			if(!uriExclusionSet.contains(uri)){
 				newList.add(conn);
 				counter++;
 			}
@@ -131,7 +136,6 @@ public class StatCollector {
 	}
 	
 	private void addRequest(String ip) {
-		System.out.println("Request IP: "+ip);
 		requests ++;
 		ProcessedRequest request = new ProcessedRequest(ip);
 		for(ProcessedRequest req:uniqIPRequests){
