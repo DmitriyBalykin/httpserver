@@ -11,9 +11,8 @@ public class ServerManager {
 	 * @param args
 	 * @throws IOException 
 	 */
-	public static void main(String[] args) throws IOException {
-		
-		int port = 80;
+	public static void start(String[] args){
+	int port = 80;
 		
 		if(args.length == 1){
 			try {
@@ -42,15 +41,16 @@ public class ServerManager {
 		
 		String line;
 		while((line = input.nextLine()) != null && line.length() != 0){
-	
 			if(line.equals("stop")){
 				server.stop();
-				System.out.print("Server is stopping... ");
 				return;
 			} else {
 				System.out.println("Unknown command: "+line);
 			}
 		}
-		
+	}
+	
+	public static void main(String[] args){
+		ServerManager.start(args);
 	}
 }
