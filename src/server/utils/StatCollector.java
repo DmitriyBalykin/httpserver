@@ -75,17 +75,19 @@ public class StatCollector {
 			strValue = strValue.substring(1);
 		}
 		
-		boolean isNewConn = true;
-		for(int i = 0; i < processedConnections.size(); i++){
-			ProcessedConnection conn = processedConnections.get(i);
-			if(newConn.equals(conn)){
-				fillConnection(conn, param, strValue, digValue);
-				isNewConn = false;
+		synchronized(this){
+			boolean isNewConn = true;
+			for(int i = 0; i < processedConnections.size(); i++){
+				ProcessedConnection conn = processedConnections.get(i);
+				if(newConn.equals(conn)){
+					fillConnection(conn, param, strValue, digValue);
+					isNewConn = false;
+				}
 			}
-		}
-		if(isNewConn){
-			fillConnection(newConn, param, strValue, digValue);
-			processedConnections.push(newConn);
+			if(isNewConn){
+				fillConnection(newConn, param, strValue, digValue);
+				processedConnections.push(newConn);
+			}
 		}
 		
 		if(param.equals(ConnectionParameter.IPADDRESS)){
