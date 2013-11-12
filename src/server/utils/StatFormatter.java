@@ -72,6 +72,9 @@ public class StatFormatter {
 			//print cell values, skipping first row, that relates to current connection and is incomplete
 			for(ProcessedConnection conn:connections.subList(1, connections.size())){
 				add("<tr>");
+				if(conn == null){
+					continue;
+				}
 				for(String cellValue:conn.getValues()){
 					add("<td>");
 					add(cellValue);
