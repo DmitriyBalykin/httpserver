@@ -3,9 +3,9 @@ package server.utils;
 import io.netty.channel.Channel;
 
 import java.net.SocketAddress;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -20,12 +20,7 @@ public class StatCollector {
 	private volatile Set<ProcessedRequest> uniqIPRequests = new HashSet<ProcessedRequest>();	//IP -> (requests number, last request time)
 	private volatile Map<String, Integer> redirects = new HashMap<String, Integer>();
 	private volatile LinkedList<ProcessedConnection> processedConnections = new LinkedList<ProcessedConnection>();
-	private static final int MAX_CONNECTIONS_STORED = 16; 
-	
-	private static Set<String> uriExclusionSet = new HashSet<String>();
-	{
-		uriExclusionSet.add("favicon.ico");
-	}
+	private static final int MAX_CONNECTIONS_STORED = 16;
 	
 	public static String ipAddressToString(SocketAddress address){
 		String strAddr = address.toString();
@@ -41,10 +36,10 @@ public class StatCollector {
 	}
 	
 	public synchronized void decreaseOpenedConnections() throws Exception {
-		if(openedConnections == 0){
-			return;
-		}
 		openedConnections --;
+		if(openedConnections < 0){
+			throw new Exception("Error in counting opened connections: number cannot be less than 0");
+		}
 	}
 	
 	public int getOpenedConnections() {
@@ -88,6 +83,9 @@ public class StatCollector {
 				fillConnection(newConn, param, strValue, digValue);
 				processedConnections.push(newConn);
 			}
+			if(processedConnections.size() > MAX_CONNECTIONS_STORED){
+				processedConnections.pollLast();
+			}
 		}
 		
 		if(param.equals(ConnectionParameter.IPADDRESS)){
@@ -104,25 +102,7 @@ public class StatCollector {
 	}
 	
 	public List<ProcessedConnection> getProcessedConnections() {
-		
-		ArrayList<ProcessedConnection> newList = new ArrayList<ProcessedConnection>(MAX_CONNECTIONS_STORED);
-		LinkedList<ProcessedConnection> backList = null;
-		synchronized(this){
-			backList = new LinkedList<ProcessedConnection>(processedConnections);
-		}
-		
-		int counter = 0;
-		for(ProcessedConnection conn:backList){
-			String uri = conn.getURI();
-			if(!uriExclusionSet.contains(uri)){
-				newList.add(conn);
-				counter++;
-			}
-			if(counter == MAX_CONNECTIONS_STORED){
-				break;
-			}
-		}
-		return newList;
+		return (LinkedList<ProcessedConnection>) processedConnections.clone();
 	}
 
 	private void fillConnection(ProcessedConnection conn, ConnectionParameter param, String strValue, long digValue){
