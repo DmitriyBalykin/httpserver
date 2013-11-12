@@ -50,7 +50,7 @@ public class ProcessedConnection {
 		valuesMap.put(ConnectionParameter.RECEIVED_BYTES, "");
 		valuesMap.put(ConnectionParameter.SPEED, "");
 	}
-
+	
 	public Set<String> getHeader(){
 		Set<String> headersSet = new LinkedHashSet<String>();
 		for(ConnectionParameter param:valuesMap.keySet()){
