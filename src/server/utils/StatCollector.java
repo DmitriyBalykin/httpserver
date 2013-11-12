@@ -83,8 +83,10 @@ public class StatCollector {
 				fillConnection(newConn, param, strValue, digValue);
 				processedConnections.push(newConn);
 			}
-			if(processedConnections.size() > MAX_CONNECTIONS_STORED){
-				processedConnections.pollLast();
+			synchronized (this) {
+				if(processedConnections.size() > MAX_CONNECTIONS_STORED){
+					processedConnections.pollLast();
+				}
 			}
 		}
 		
@@ -101,7 +103,7 @@ public class StatCollector {
 		addProcessedConnection(channel, param, value, 0);
 	}
 	
-	public List<ProcessedConnection> getProcessedConnections() {
+	public synchronized List<ProcessedConnection> getProcessedConnections() {
 		return (LinkedList<ProcessedConnection>) processedConnections.clone();
 	}
 
