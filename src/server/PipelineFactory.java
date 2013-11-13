@@ -2,7 +2,6 @@ package server;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
 import io.netty.handler.codec.http.HttpServerCodec;
 import server.handler.HttpRequestHandler;
 import server.handler.StatCollectorInboundHandler;
