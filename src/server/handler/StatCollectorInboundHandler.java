@@ -5,6 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import server.utils.ProcessedConnection.ConnectionParameter;
 import server.utils.StatCollector;
+import server.utils.StringLongValue;
 
 public class StatCollectorInboundHandler extends ChannelInboundHandlerAdapter{
 	private StatCollector statCollector;
@@ -30,9 +31,6 @@ public class StatCollectorInboundHandler extends ChannelInboundHandlerAdapter{
 		String remoteIp = StatCollector.ipAddressToString(ctx.channel().remoteAddress());
 		//measuring connection speed
 		
-		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.IPADDRESS, remoteIp);
-		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.RECEIVED_BYTES, receivedBytes);		
-		
 		long startReadTime = System.nanoTime();
 		
 		super.channelRead(ctx, msg);
@@ -44,6 +42,8 @@ public class StatCollectorInboundHandler extends ChannelInboundHandlerAdapter{
 		}
 			
 		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.SPEED, Math.round(speed));
+		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.IPADDRESS, remoteIp);
+		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.RECEIVED_BYTES, receivedBytes);
 	}
 	
 	@Override

@@ -2,17 +2,19 @@ package server.utils;
 
 import io.netty.channel.Channel;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class ProcessedConnection {
 	
-	public enum ConnectionParameter {
+	public static enum ConnectionParameter {
 		
 		IPADDRESS("Source IP address"),
 		URI("URI"),
@@ -27,28 +29,31 @@ public class ProcessedConnection {
 		
 	}
 	
-	Map<ConnectionParameter, String> valuesMap = new LinkedHashMap<ConnectionParameter, String>(6);
-	Channel channel;
+	private static int DEFINED_PARAMETERS = 6;
+	private Map<ConnectionParameter, StringLongValue> valuesMap = new LinkedHashMap<ConnectionParameter, StringLongValue>(DEFINED_PARAMETERS);
+	private Channel channel;
 	
 	public ProcessedConnection(Channel channel) {
 		this.channel = channel;
+		
 		Calendar calendar = new GregorianCalendar();
+		StringBuilder sb = new StringBuilder();
+
+		sb
+		.append(calendar.get(Calendar.YEAR))
+		.append(calendar.get(Calendar.MONTH))
+		.append(calendar.get(Calendar.DAY_OF_MONTH))
+		.append("-")
+		.append(calendar.get(Calendar.HOUR_OF_DAY))
+		.append(calendar.get(Calendar.MINUTE))
+		.append(calendar.get(Calendar.SECOND));
 		
-		String timestamp = String.format("%d%02d%02d-%02d%02d%02d",
-				calendar.get(Calendar.YEAR),
-				calendar.get(Calendar.MONTH),
-				calendar.get(Calendar.DAY_OF_MONTH),
-				calendar.get(Calendar.HOUR_OF_DAY),
-				calendar.get(Calendar.MINUTE),
-				calendar.get(Calendar.SECOND)
-				);
-		
-		valuesMap.put(ConnectionParameter.IPADDRESS, "");
-		valuesMap.put(ConnectionParameter.URI, "");
-		valuesMap.put(ConnectionParameter.TIME_STAMP, timestamp);
-		valuesMap.put(ConnectionParameter.SENT_BYTES, "");
-		valuesMap.put(ConnectionParameter.RECEIVED_BYTES, "");
-		valuesMap.put(ConnectionParameter.SPEED, "");
+		valuesMap.put(ConnectionParameter.IPADDRESS, new StringLongValue(""));
+		valuesMap.put(ConnectionParameter.URI, new StringLongValue(""));
+		valuesMap.put(ConnectionParameter.TIME_STAMP,  new StringLongValue(sb.toString()));
+		valuesMap.put(ConnectionParameter.SENT_BYTES,  new StringLongValue(0));
+		valuesMap.put(ConnectionParameter.RECEIVED_BYTES,  new StringLongValue(0));
+		valuesMap.put(ConnectionParameter.SPEED,  new StringLongValue(0));
 	}
 	
 	public Set<String> getHeader(){
@@ -60,26 +65,15 @@ public class ProcessedConnection {
 	}
 
 	public Collection<String> getValues(){
-		return valuesMap.values();
-	}
-
-	public void addParameter(ConnectionParameter parameter, String value){
-		valuesMap.put(parameter, value);
-	}
-
-	public void addParameter(ConnectionParameter parameter, long value){
-		if(parameter != ConnectionParameter.SPEED){
-			//speed sets one time, other parameters accumulates value
-			long val = 0;
-			try {
-				val = new Long(valuesMap.get(parameter.toString()));
-			} catch (NumberFormatException e) {
-				val = 0;
-			}
-			 
-			value = value + val;
+		List<String> list = new ArrayList<String>(DEFINED_PARAMETERS);
+		for(StringLongValue value: valuesMap.values()){
+			list.add(value.getString());
 		}
-		valuesMap.put(parameter, Long.toString(value));
+		return list;
+	}
+
+	public void addParameter(ConnectionParameter parameter, StringLongValue value){
+		valuesMap.put(parameter, value);
 	}
 
 	public boolean equals(Object o){
@@ -91,6 +85,6 @@ public class ProcessedConnection {
 	}
 	
 	public String getURI(){
-		return valuesMap.get(ConnectionParameter.URI);
+		return valuesMap.get(ConnectionParameter.URI).getString();
 	}
 }

@@ -6,6 +6,7 @@ import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import server.utils.ProcessedConnection.ConnectionParameter;
 import server.utils.StatCollector;
+import server.utils.StringLongValue;
 
 public class StatCollectorOutboudHandler extends ChannelOutboundHandlerAdapter{
 	StatCollector statCollector;

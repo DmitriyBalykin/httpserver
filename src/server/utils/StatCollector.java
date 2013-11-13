@@ -19,8 +19,9 @@ public class StatCollector {
 	private volatile int openedConnections = 0;
 	private volatile Set<ProcessedRequest> uniqIPRequests = new HashSet<ProcessedRequest>();	//IP -> (requests number, last request time)
 	private volatile Map<String, Integer> redirects = new HashMap<String, Integer>();
-	private volatile LinkedList<ProcessedConnection> processedConnections = new LinkedList<ProcessedConnection>();
+//	private volatile LinkedList<ProcessedConnection> processedConnections = new LinkedList<ProcessedConnection>();
 	private static final int MAX_CONNECTIONS_STORED = 16;
+	private volatile LimitedHashMap<Channel,ProcessedConnection> processedConnections = new LimitedHashMap<Channel, ProcessedConnection>(MAX_CONNECTIONS_STORED);
 	
 	public static String ipAddressToString(SocketAddress address){
 		String strAddr = address.toString();
@@ -61,59 +62,35 @@ public class StatCollector {
 		return redirects;
 	}
 	
-	public synchronized void addProcessedConnection(Channel channel, ConnectionParameter param, String strValue, long digValue) {
+	public synchronized void addProcessedConnection(Channel channel, ConnectionParameter param, StringLongValue value) {
 
 		ProcessedConnection newConn = new ProcessedConnection(channel);
 
 		//delete starting slash from uri string
 		if(param.equals(ConnectionParameter.URI)){
-			strValue = strValue.substring(1);
+			value.setString(value.getString().substring(1));
 		}
 		
-		synchronized(this){
-			boolean isNewConn = true;
-			for(int i = 0; i < processedConnections.size(); i++){
-				ProcessedConnection conn = processedConnections.get(i);
-				if(newConn.equals(conn)){
-					fillConnection(conn, param, strValue, digValue);
-					isNewConn = false;
-				}
-			}
-			if(isNewConn){
-				fillConnection(newConn, param, strValue, digValue);
-				processedConnections.push(newConn);
-			}
-			synchronized (this) {
-				if(processedConnections.size() > MAX_CONNECTIONS_STORED){
-					processedConnections.pollLast();
-				}
-			}
+		ProcessedConnection connection = processedConnections.add(channel, newConn);
+		if(connection != null){
+			connection.addParameter(param, value);
 		}
 		
 		if(param.equals(ConnectionParameter.IPADDRESS)){
-			addRequest(strValue);
+			addRequest(value.getString());
 		}
 	}
 	
 	public void addProcessedConnection(Channel channel, ConnectionParameter param, long value){
-		addProcessedConnection(channel, param, "", value);
+		addProcessedConnection(channel, param, new StringLongValue(value));
 	}
 	
 	public void addProcessedConnection(Channel channel, ConnectionParameter param, String value){
-		addProcessedConnection(channel, param, value, 0);
+		addProcessedConnection(channel, param, new StringLongValue(value));
 	}
 	
 	public synchronized List<ProcessedConnection> getProcessedConnections() {
-		return (LinkedList<ProcessedConnection>) processedConnections.clone();
-	}
-
-	private void fillConnection(ProcessedConnection conn, ConnectionParameter param, String strValue, long digValue){
-		if(!strValue.equals("")){
-			conn.addParameter(param, strValue);
-		}
-		if(digValue != 0){
-			conn.addParameter(param, digValue);
-		}
+		return (LinkedList<ProcessedConnection>) processedConnections.getValues();
 	}
 	
 	private synchronized void addRequest(String ip) {

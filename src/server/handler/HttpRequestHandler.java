@@ -17,6 +17,7 @@ import java.util.List;
 import server.utils.ProcessedConnection.ConnectionParameter;
 import server.utils.StatCollector;
 import server.utils.StatFormatter;
+import server.utils.StringLongValue;
 
 public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>{
 	
