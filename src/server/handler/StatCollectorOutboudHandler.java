@@ -4,9 +4,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
-import server.utils.ProcessedConnection.ConnectionParameter;
 import server.utils.StatCollector;
-import server.utils.StringLongValue;
+import static server.utils.ProcessedConnection.ConnectionParameter.*;
 
 public class StatCollectorOutboudHandler extends ChannelOutboundHandlerAdapter{
 	StatCollector statCollector;
@@ -28,9 +27,9 @@ public class StatCollectorOutboudHandler extends ChannelOutboundHandlerAdapter{
 			speed = sentBytes / readTime;
 		}
 			
-		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.IPADDRESS, remoteIp);
-		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.SENT_BYTES, sentBytes);
-		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.SPEED, Math.round(speed));
+		statCollector.addProcessedConnection(ctx.channel(), IPADDRESS, remoteIp);
+		statCollector.addProcessedConnection(ctx.channel(), SENT_BYTES, sentBytes);
+		statCollector.addProcessedConnection(ctx.channel(), SPEED, Math.round(speed));
 		
 	}
 	

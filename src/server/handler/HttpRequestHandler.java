@@ -14,10 +14,10 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 
 import java.util.List;
 
-import server.utils.ProcessedConnection.ConnectionParameter;
 import server.utils.StatCollector;
 import server.utils.StatFormatter;
-import server.utils.StringLongValue;
+
+import static server.utils.ProcessedConnection.ConnectionParameter.*;
 
 public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>{
 	
@@ -44,7 +44,7 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<HttpRequest>
 		QueryStringDecoder decoder = new QueryStringDecoder(request.getUri());
 		String decodedUri = decoder.path();
 		
-		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.URI, decodedUri);
+		statCollector.addProcessedConnection(ctx.channel(), URI, decodedUri);
 		
 		//	response Hello world
 		if(decodedUri.equals(HELLO_REQUEST)){

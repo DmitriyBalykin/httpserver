@@ -3,9 +3,8 @@ package server.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import server.utils.ProcessedConnection.ConnectionParameter;
 import server.utils.StatCollector;
-import server.utils.StringLongValue;
+import static server.utils.ProcessedConnection.ConnectionParameter.*;
 
 public class StatCollectorInboundHandler extends ChannelInboundHandlerAdapter{
 	private StatCollector statCollector;
@@ -41,9 +40,9 @@ public class StatCollectorInboundHandler extends ChannelInboundHandlerAdapter{
 			speed = receivedBytes / readTime;
 		}
 			
-		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.SPEED, Math.round(speed));
-		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.IPADDRESS, remoteIp);
-		statCollector.addProcessedConnection(ctx.channel(), ConnectionParameter.RECEIVED_BYTES, receivedBytes);
+		statCollector.addProcessedConnection(ctx.channel(), SPEED, Math.round(speed));
+		statCollector.addProcessedConnection(ctx.channel(), IPADDRESS, remoteIp);
+		statCollector.addProcessedConnection(ctx.channel(), RECEIVED_BYTES, receivedBytes);
 	}
 	
 	@Override
